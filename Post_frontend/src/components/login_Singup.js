@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+
 
 const AuthPage = () => {
+  const navigate = useNavigate();
   // State variables for form fields
   const [isLogin, setIsLogin] = useState(true); // Track if it's the login or signup form
   const [email, setEmail] = useState('');
@@ -18,19 +22,24 @@ const AuthPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prepare payload based on login or signup
-    const payload = isLogin
-      ? { email, password } // For login, only send email and password
-      : { fname, lname, email, password }; // For signup, send fname, lname, email, and password
+    let payload = {}; // Initialize payload
+    let apiUrl = ''; // Initialize API URL
+
+    if (isLogin) {
+      // Login case
+      payload = { email, password }; // Only email and password
+      apiUrl = 'http://localhost:3002/user/login'; // Login API
+    } else {
+      // Signup case
+      payload = { fname, lname, email, password }; // Include all fields
+      apiUrl = 'http://localhost:3002/user/adduser'; // Signup API
+    }
 
     try {
-      const apiUrl = isLogin
-        ? 'http://localhost:3002/user/login' // Use login API for login
-        : 'http://localhost:3002/user/adduser'; // Use adduser API for signup
-
       // Send POST request to the API
       const response = await axios.post(apiUrl, payload);
-      console.log('Success:', response.data); // Handle success (e.g., save token, redirect)
+      console.log('Success:', response.data);
+      navigate("/") // Handle success (e.g., save token, redirect)
     } catch (error) {
       console.error('Error:', error.response ? error.response.data : error.message); // Handle error
     }
@@ -42,7 +51,7 @@ const AuthPage = () => {
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
           {isLogin ? 'Login' : 'Sign Up'}
         </h2>
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           {!isLogin && (
             <>
               <div>
@@ -98,16 +107,9 @@ const AuthPage = () => {
             />
           </div>
 
-          {/* Only show confirmPassword for signup */}
-         
-
           <div className="flex justify-between items-center">
             <button
               type="submit"
-              onClick={()=>{
-                handleSubmit();
-
-              }}
               className="w-full py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none"
             >
               {isLogin ? 'Login' : 'Sign Up'}
